@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import app.sales.dto.product.ShowProductResponse;
+import app.sales.dto.product.ProductResponse;
 import app.sales.entity.Product;
 import app.sales.repository.CategoryRepository;
 import app.sales.repository.ProductRepository;
@@ -52,14 +52,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ShowProductResponse> getAllProducts() {
+    public List<ProductResponse> getAllProducts() {
         List<Product> products = productRepository.findAll();
         return products.stream()
-                .map(product -> new ShowProductResponse(
+                .map(product -> new ProductResponse(
                         product.getProductId(),
                         product.getProductName(),
+                        product.getProductBrand(),
+                        Double.valueOf(product.getProductPrice()),
+                        product.getProductDiscount(),
                         product.getProductStock(),
-                        product.getProductFinalPrice()))
+                        Double.valueOf(product.getProductFinalPrice())))
                 .collect(Collectors.toList());
     }
 
@@ -78,7 +81,13 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setProductStock(product.getProductStock());
         existingProduct.setProductPrice(product.getProductPrice());
         existingProduct.setProductDiscount(product.getProductDiscount());
-        existingProduct.setProductFinalPrice(product.getProductFinalPrice());
+
+        double finalPrice = product.getProductPrice();
+        if (product.getProductDiscount() != null && product.getProductDiscount() > 0) {
+            finalPrice = finalPrice - (finalPrice * product.getProductDiscount() / 100);
+        }
+
+        existingProduct.setProductFinalPrice(finalPrice);
         existingProduct.setProductCategory(product.getProductCategory());
         existingProduct.setUpdatedAt(LocalDateTime.now());
         existingProduct.setUpdatedBy(getCurrentUsername());
