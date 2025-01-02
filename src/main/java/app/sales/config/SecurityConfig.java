@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/login").permitAll()
                         .requestMatchers("/categories/**").hasAuthority("ADMIN")
                         .requestMatchers("/products/**").hasAuthority("ADMIN")
+                        .requestMatchers("/transactions/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin().disable()
                 .sessionManagement()
