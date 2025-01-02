@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import app.sales.dto.auth.LoginRequest;
-import app.sales.dto.auth.RegisterRequest;
+import app.sales.dto.login.LoginRequest;
+import app.sales.dto.register.RegisterRequest;
 import app.sales.entity.Role;
 import app.sales.entity.User;
 import app.sales.repository.UserRepository;
