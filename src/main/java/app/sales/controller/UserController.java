@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.sales.dto.ApiResponse;
-import app.sales.dto.auth.LoginRequest;
-import app.sales.dto.auth.LoginResponse;
-import app.sales.dto.auth.RegisterRequest;
+import app.sales.dto.login.LoginRequest;
+import app.sales.dto.login.LoginResponse;
+import app.sales.dto.register.RegisterRequest;
 import app.sales.entity.User;
 import app.sales.repository.UserRepository;
 import app.sales.service.JwtService;
