@@ -2,13 +2,13 @@ package app.sales.service;
 
 import java.util.List;
 
-import app.sales.dto.product.ShowProductResponse;
+import app.sales.dto.product.ProductResponse;
 import app.sales.entity.Product;
 
 public interface ProductService {
     Product addProduct(Product product);
 
-    List<ShowProductResponse> getAllProducts();
+    List<ProductResponse> getAllProducts();
 
     Product getProductById(Integer productId);
 
