@@ -1,7 +1,7 @@
 package app.sales.service;
 
-import app.sales.dto.auth.LoginRequest;
-import app.sales.dto.auth.RegisterRequest;
+import app.sales.dto.login.LoginRequest;
+import app.sales.dto.register.RegisterRequest;
 import app.sales.entity.User;
 
 public interface UserService {
