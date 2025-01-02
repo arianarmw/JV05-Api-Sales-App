@@ -25,9 +25,9 @@ public class CategoryController {
 
         ApiResponse<List<CategoryResponse>> response = new ApiResponse<>();
         response.setData(categories);
-        response.setMessage("Categories retrieved successfully");
+        response.setMessage("Berhasil mengambil data kategori.");
         response.setStatusCode(200);
-        response.setStatus("Success");
+        response.setStatus("Sukses");
         return ResponseEntity.ok(response);
     }
 
