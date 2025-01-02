@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import app.sales.dto.ApiResponse;
 import app.sales.dto.product.AddProductResponse;
-import app.sales.dto.product.ShowProductResponse;
+import app.sales.dto.product.ProductResponse;
 import app.sales.entity.Product;
 import app.sales.repository.ProductRepository;
 import app.sales.service.ProductService;
@@ -74,10 +74,10 @@ public class ProductController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<ApiResponse<List<ShowProductResponse>>> getAllProducts() {
-        List<ShowProductResponse> products = productService.getAllProducts();
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+        List<ProductResponse> products = productService.getAllProducts();
 
-        ApiResponse<List<ShowProductResponse>> response = new ApiResponse<>();
+        ApiResponse<List<ProductResponse>> response = new ApiResponse<>();
         response.setData(products);
         response.setMessage("Berhasil mengambil data produk.");
         response.setStatusCode(200);
