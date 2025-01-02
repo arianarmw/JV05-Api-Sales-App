@@ -21,6 +21,7 @@ import app.sales.entity.User;
 import app.sales.repository.UserRepository;
 import app.sales.service.JwtService;
 import app.sales.service.UserService;
+import app.sales.service.impl.UserServiceImpl.AccountNotActivatedException;
 
 @RequestMapping("/users")
 @RestController
@@ -57,6 +58,14 @@ public class UserController {
             apiResponse.setStatus("Sukses");
 
             return ResponseEntity.ok(apiResponse);
+        } catch (AccountNotActivatedException e) {
+            ApiResponse<LoginResponse> errorResponse = new ApiResponse<>();
+            errorResponse.setData(null);
+            errorResponse.setMessage("Login gagal: " + "Akun belum diaktivasi.");
+            errorResponse.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+            errorResponse.setStatus("Gagal");
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         } catch (Exception e) {
             ApiResponse<LoginResponse> errorResponse = new ApiResponse<>();
             errorResponse.setData(null);
