@@ -35,13 +35,21 @@ public class UserServiceImpl implements UserService {
     }
 
     public User login(LoginRequest input) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        input.getUsername(),
-                        input.getPassword()));
+        Optional<User> userOptional = userRepository.findByUsername(input.getUsername());
 
-        return userRepository.findByUsername(input.getUsername())
-                .orElseThrow();
+        if (userOptional.isEmpty()) {
+            throw new AccountNotActivatedException("Username atau Password tidak sesuai.");
+        }
+
+        User user = userOptional.get();
+
+        if (!user.getIsActive()) {
+            throw new AccountNotActivatedException("Akun belum diaktivasi.");
+        }
+
+        authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(input.getUsername(), input.getPassword()));
+        return user;
     }
 
     @Override
@@ -94,6 +102,12 @@ public class UserServiceImpl implements UserService {
             }
         } else {
             return "Pengguna bukan KASIR.";
+        }
+    }
+
+    public static class AccountNotActivatedException extends RuntimeException {
+        public AccountNotActivatedException(String message) {
+            super(message);
         }
     }
 
