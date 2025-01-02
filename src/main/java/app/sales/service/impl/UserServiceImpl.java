@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -64,14 +63,9 @@ public class UserServiceImpl implements UserService {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserRole = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(grantedAuthority -> grantedAuthority.getAuthority())
-                .orElse("UNKNOWN_ROLE");
-
-        user.setCreatedBy(currentUserRole);
-        user.setUpdatedBy(currentUserRole);
+        String currentUsername = getCurrentUsername();
+        user.setCreatedBy(currentUsername);
+        user.setUpdatedBy(currentUsername);
 
         return userRepository.save(user);
     }
