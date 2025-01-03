@@ -1,4 +1,4 @@
-# 🛒 API Sales APP
+# 🛒 API Sales APP (Under Reconstruction)
 
 ## 📝 Deskripsi  
 API ini dibangun menggunakan **Java Spring Boot** dan **PostgreSQL**.
@@ -32,7 +32,7 @@ Apabila ingin mengaksesnya, silahkan request untuk akses collection dengan email
    - Pengurangan stok produk secara otomatis.  
 
 5. **API Laporan**:  
-   - Menyediakan laporan penjualan berdasarkan tanggal atau produk tertentu.  
+   - Menyediakan laporan transaksi dengan filter startDate dan endDate.
 
 ---
 
@@ -44,7 +44,7 @@ Apabila ingin mengaksesnya, silahkan request untuk akses collection dengan email
 ---
 
 ## 🚧 Status  
-Dalam pengembangan.
+Dalam pengembangan. Mungkin bisa nambah lagi API nya kalo aku senggang :)
 
 ---
 
