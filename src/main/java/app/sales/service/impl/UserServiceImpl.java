@@ -48,9 +48,6 @@ public class UserServiceImpl implements UserService {
         if (!user.getIsActive()) {
             throw new AccountNotActivatedException("Akun belum diaktivasi.");
         }
-        if (user.getRole() == Role.KASIR && user.getIsActive()) {
-            throw new AccountNotActivatedException("Akun sudah diaktivasi.");
-        }
 
         if (!passwordEncoder.matches(input.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Username dan Password tidak sesuai.");
