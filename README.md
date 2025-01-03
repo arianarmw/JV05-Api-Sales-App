@@ -4,7 +4,7 @@
 API ini dibangun menggunakan **Java Spring Boot** dan **PostgreSQL**.
 API yang tersedia, yaitu API Login, Register, Master Data Produk, Transaksi Penjualan, dan Laporan.
 
-Skema komponen database tersedia pada link berikut: https://docs.google.com/spreadsheets/d/1C1Q3wVCYLbC10dwd2WXVQNn_w2vs1tqBMRQ7hpfpUFg/edit?usp=sharing
+Skema komponen database tersedia pada link berikut: [https://docs.google.com/spreadsheets/d/1C1Q3wVCYLbC10dwd2WXVQNn_w2vs1tqBMRQ7hpfpUFg/edit?usp=sharing](https://bit.ly/Skema-API-Sales-App)
 
 Dokumentasi API tersedia di link Postman berikut: https://app.getpostman.com/join-team?invite_code=c3bc89958fbd2d0410c26086a499b285ece4035451942a0ae060b1e2aedd4c0f&target_code=557827a9ffd2a8724a10fffe25572165
 
