@@ -18,12 +18,15 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthenticationFilter,
-            @Lazy AuthenticationProvider authenticationProvider) {
+            @Lazy AuthenticationProvider authenticationProvider,
+            CustomAccessDeniedHandler accessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authenticationProvider = authenticationProvider;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -32,35 +35,25 @@ public class SecurityConfig {
                 .disable()
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/register").hasAuthority("ADMIN")
+                        .requestMatchers("/users/activate/**").hasAuthority("ADMIN")
                         .requestMatchers("/users/login").permitAll()
-                        .requestMatchers("/categories/**").hasAuthority("ADMIN")
+                        .requestMatchers("/categories/list").hasAuthority("ADMIN")
                         .requestMatchers("/products/**").hasAuthority("ADMIN")
                         .requestMatchers("/transactions/**").permitAll()
+                        .requestMatchers("/reports/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin().disable()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler)
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
-    // @Bean
-    // public CorsConfigurationSource corsConfigurationSource() {
-    // CorsConfiguration configuration = new CorsConfiguration();
-
-    // configuration.setAllowedOrigins(List.of("http://localhost:8005"));
-    // configuration.setAllowedMethods(List.of("GET", "POST"));
-    // configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-    // UrlBasedCorsConfigurationSource source = new
-    // UrlBasedCorsConfigurationSource();
-    // source.registerCorsConfiguration("/**", configuration);
-
-    // return source;
-    // }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
