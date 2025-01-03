@@ -21,14 +21,7 @@ public class CategoryController {
 
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        List<CategoryResponse> categories = categoryService.getAllCategories();
-
-        ApiResponse<List<CategoryResponse>> response = new ApiResponse<>();
-        response.setData(categories);
-        response.setMessage("Berhasil mengambil data kategori.");
-        response.setStatusCode(200);
-        response.setStatus("Sukses");
-        return ResponseEntity.ok(response);
+        ApiResponse<List<CategoryResponse>> response = categoryService.getAllCategories();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
-
 }
