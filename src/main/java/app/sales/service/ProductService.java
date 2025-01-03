@@ -10,7 +10,7 @@ public interface ProductService {
 
     List<ProductResponse> getAllProducts();
 
-    Product getProductById(Integer productId);
+    ProductResponse getProductById(Integer productId);
 
     Product updateProduct(Integer productId, Product product);
 
