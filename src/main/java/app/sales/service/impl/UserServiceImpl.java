@@ -20,47 +20,51 @@ import app.sales.service.UserService;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AuthenticationManager authenticationManager;
 
-    public UserServiceImpl(
-            UserRepository userRepository,
-            AuthenticationManager authenticationManager,
+    public UserServiceImpl(UserRepository userRepository, AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
+        this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Override
     public User login(LoginRequest input) {
-        Optional<User> userOptional = userRepository.findByUsername(input.getUsername());
+        if (input.getUsername() == null || input.getUsername().isEmpty()) {
+            throw new IllegalArgumentException("Masukkan username.");
+        }
+        if (input.getPassword() == null || input.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Masukkan password.");
+        }
 
+        Optional<User> userOptional = userRepository.findByUsername(input.getUsername());
         if (userOptional.isEmpty()) {
-            throw new AccountNotActivatedException("Username atau Password tidak sesuai.");
+            throw new IllegalArgumentException("Pengguna belum terdaftar.");
         }
 
         User user = userOptional.get();
-
         if (!user.getIsActive()) {
             throw new AccountNotActivatedException("Akun belum diaktivasi.");
         }
+        if (user.getRole() == Role.KASIR && user.getIsActive()) {
+            throw new AccountNotActivatedException("Akun sudah diaktivasi.");
+        }
 
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(input.getUsername(), input.getPassword()));
+        if (!passwordEncoder.matches(input.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Username dan Password tidak sesuai.");
+        }
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(input.getUsername(), input.getPassword()));
+
         return user;
     }
 
     @Override
     public User register(RegisterRequest input) {
-        if (!input.getPassword().equals(input.getRetypePassword())) {
-            throw new IllegalArgumentException("Password dan Retype Password tidak sama");
-        }
-
-        if (userRepository.findByUsername(input.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Maaf, Username sudah terdaftar.");
-        }
+        validateRegisterRequest(input);
 
         User user = new User();
         user.setFullName(input.getFullname());
@@ -78,6 +82,65 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    private void validateRegisterRequest(RegisterRequest input) {
+        if (input.getUsername() == null || input.getUsername().isEmpty()) {
+            throw new IllegalArgumentException("Username harus diisi.");
+        }
+        if (!input.getUsername().matches("^[a-zA-Z0-9]+$")) {
+            throw new IllegalArgumentException(
+                    "Username harus diisi menggunakan huruf atau kombinasi huruf dan angka.");
+        }
+        if (userRepository.findByUsername(input.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Akun dengan username tersebut sudah terdaftar.");
+        }
+        if (input.getFullname() == null || input.getFullname().isEmpty()) {
+            throw new IllegalArgumentException("Nama lengkap harus diisi.");
+        }
+        if (!input.getFullname().matches("^[a-zA-Z'\\s]+$")) {
+            throw new IllegalArgumentException(
+                    "Nama harus diisi dengan huruf dan atau kombinasi dengan tanda petik \"'\".");
+        }
+        if (input.getPassword() == null || input.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password harus diisi.");
+        }
+        if (input.getPassword().length() < 8) {
+            throw new IllegalArgumentException(
+                    "Password harus diisi minimal 8 karakter dan harus kombinasi huruf, angka, serta karakter apapun.");
+        }
+
+        // Password validation rules
+        if (input.getPassword().matches("^[a-zA-Z]+$")) {
+            throw new IllegalArgumentException(
+                    "Password harus kombinasi huruf, angka, serta karakter apapun. Tidak boleh hanya huruf.");
+        }
+        if (input.getPassword().matches("^\\d+$")) {
+            throw new IllegalArgumentException(
+                    "Password harus kombinasi huruf, angka, serta karakter apapun. Tidak boleh hanya angka.");
+        }
+        if (input.getPassword().matches("^[^a-zA-Z0-9]+$")) {
+            throw new IllegalArgumentException(
+                    "Password harus kombinasi huruf, angka, serta karakter apapun. Tidak boleh hanya karakter spesial.");
+        }
+        if (input.getPassword().matches("^[a-zA-Z\\d]+$")) {
+            throw new IllegalArgumentException(
+                    "Password harus kombinasi huruf, angka, serta karakter apapun. Tidak boleh hanya huruf dan angka.");
+        }
+        if (input.getPassword().matches("^[\\d[^a-zA-Z]]+$")) {
+            throw new IllegalArgumentException(
+                    "Password harus kombinasi huruf, angka, serta karakter apapun. Tidak boleh hanya angka dan karakter spesial.");
+        }
+        if (input.getPassword().matches("^[a-zA-Z[^\\d]]+$")) {
+            throw new IllegalArgumentException(
+                    "Password harus kombinasi huruf, angka, serta karakter apapun. Tidak boleh hanya huruf dan karakter spesial.");
+        }
+        if (!input.getPassword().equals(input.getConfirmPassword())) {
+            throw new IllegalArgumentException("Konfirmasi password tidak sesuai.");
+        }
+        if (input.getConfirmPassword() == null || input.getConfirmPassword().isEmpty()) {
+            throw new IllegalArgumentException("Konfirmasi password harus diisi.");
+        }
+    }
+
     public String activateAccount(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
 
@@ -91,10 +154,7 @@ public class UserServiceImpl implements UserService {
             if (!user.getIsActive()) {
                 user.setIsActive(true);
                 user.setUpdatedAt(LocalDateTime.now());
-
-                String currentUserName = getCurrentUsername();
-                user.setUpdatedBy(currentUserName);
-
+                user.setUpdatedBy(getCurrentUsername());
                 userRepository.save(user);
                 return "Akun berhasil diaktivasi!";
             } else {
