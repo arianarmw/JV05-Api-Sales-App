@@ -26,6 +26,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product addProduct(Product product) {
+        if (productRepository.existsByProductName(product.getProductName())) {
+            throw new IllegalArgumentException("Nama produk sudah terdaftar.");
+        }
+
         double finalPrice = product.getProductPrice();
         if (product.getProductDiscount() != null && product.getProductDiscount() > 0) {
             finalPrice = finalPrice - (finalPrice * product.getProductDiscount() / 100);
@@ -67,14 +71,28 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product getProductById(Integer productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Produk dengan id " + productId + "tidak ditemukan."));
+    public ProductResponse getProductById(Integer productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produk dengan ID " + productId + " tidak ditemukan."));
+
+        return new ProductResponse(
+                product.getProductId(),
+                product.getProductName(),
+                product.getProductBrand(),
+                product.getProductPrice(),
+                product.getProductDiscount(),
+                product.getProductStock(),
+                product.getProductFinalPrice());
     }
 
     @Override
     public Product updateProduct(Integer productId, Product product) {
-        Product existingProduct = getProductById(productId);
+        Product existingProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produk dengan ID " + productId + " tidak ditemukan."));
+
+        if (productRepository.existsByProductNameAndProductIdNot(product.getProductName(), productId)) {
+            throw new IllegalArgumentException("Nama produk sudah digunakan oleh produk lain.");
+        }
 
         existingProduct.setProductName(product.getProductName());
         existingProduct.setProductBrand(product.getProductBrand());
@@ -97,7 +115,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product softDeleteProduct(Integer productId) {
-        Product existingProduct = getProductById(productId);
+        Product existingProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produk dengan ID " + productId + " tidak ditemukan."));
+
+        if (existingProduct.getDeletedAt() != null) {
+            throw new IllegalArgumentException("Produk dengan ID " + productId + " sudah dihapus sebelumnya.");
+        }
 
         existingProduct.setDeletedAt(LocalDateTime.now());
         existingProduct.setDeletedBy(getCurrentUsername());
