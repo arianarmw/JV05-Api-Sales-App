@@ -57,4 +57,4 @@ Dalam pengembangan. Mungkin bisa nambah lagi API nya kalo aku senggang :)
 ---
 
 ## 🤝 Kontribusi  
-Jika Anda memiliki ide untuk fitur tambahan atau menemukan bug, jangan ragu untuk membuka issue atau pull request! 😊  
+Kalau kamu punya ide untuk fitur tambahan atau menemukan bug, jangan ragu untuk membuka issue atau pull request! 😊  
