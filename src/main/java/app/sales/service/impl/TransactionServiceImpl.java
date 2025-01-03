@@ -3,6 +3,7 @@ package app.sales.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,9 +42,21 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Transaction createTransaction(Integer productId, int quantity) {
+    public TransactionResponse createTransaction(Integer productId, int quantity) {
+        if (quantity <= 0) {
+            throw new RuntimeException("Kuantitas harus lebih besar dari 0.");
+        }
+
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Produk tidak ditemukan."));
+
+        if (product.getDeletedBy() != null || product.getDeletedAt() != null) {
+            throw new RuntimeException("Produk ini tidak tersedia.");
+        }
+
+        if (product.getProductStock() <= 0) {
+            throw new RuntimeException("Produk habis.");
+        }
 
         if (product.getProductStock() < quantity) {
             throw new RuntimeException("Stok tidak mencukupi.");
@@ -72,58 +85,83 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setUpdatedBy(username);
         transactionRepository.save(transaction);
 
-        TransactionResponse transactionResponse = new TransactionResponse();
         UserResponse userResponse = new UserResponse();
         userResponse.setUserId(user.getUserId());
         userResponse.setFullname(user.getFullName());
         userResponse.setRole(user.getRole().name());
-        transactionResponse.setUser(userResponse);
 
         ProductResponse productResponse = new ProductResponse();
         productResponse.setProductId(product.getProductId());
         productResponse.setProductName(product.getProductName());
         productResponse.setProductBrand(product.getProductBrand());
-        productResponse.setProductPrice(product.getProductPrice());
+        productResponse.setProductStock(product.getProductStock());
         productResponse.setProductPrice(product.getProductPrice());
         productResponse.setProductDiscount(product.getProductDiscount());
         productResponse.setProductFinalPrice(product.getProductFinalPrice());
 
+        TransactionResponse transactionResponse = new TransactionResponse();
+        transactionResponse.setTransactionId(transaction.getTransactionId());
+        transactionResponse.setUser(userResponse);
         transactionResponse.setProduct(productResponse);
         transactionResponse.setQuantity(quantity);
         transactionResponse.setSubtotal(subtotal);
         transactionResponse.setTotal(total);
         transactionResponse.setTransactionDate(transaction.getTransactionDate().toString());
 
-        return transaction;
+        return transactionResponse;
     }
 
     @Override
     public Transaction refundTransaction(UUID transactionId, int quantity) {
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan."));
 
         if (quantity > transaction.getQuantity()) {
-            throw new RuntimeException("Refund quantity exceeds purchased quantity");
+            throw new RuntimeException("Kuantitas lebih besar dari yang dibeli.");
         }
 
         Product product = transaction.getProduct();
         product.setProductStock(product.getProductStock() + quantity);
         productRepository.save(product);
 
+        String username = getCurrentUsername();
         transaction.setQuantity(transaction.getQuantity() - quantity);
         transaction.setUpdatedAt(LocalDateTime.now());
-        transaction.setUpdatedBy("system");
+        transaction.setUpdatedBy(username);
+
         return transactionRepository.save(transaction);
     }
 
     @Override
-    public Transaction getTransactionById(UUID transactionId) {
-        return transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
-    }
+    public List<TransactionResponse> getAllTransactions() {
+        List<Transaction> transactions = transactionRepository.findAll();
 
-    @Override
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+        return transactions.stream().map(transaction -> {
+            TransactionResponse response = new TransactionResponse();
+            response.setTransactionId(transaction.getTransactionId());
+
+            UserResponse userResponse = new UserResponse();
+            userResponse.setUserId(transaction.getUser().getUserId());
+            userResponse.setFullname(transaction.getUser().getFullName());
+            userResponse.setRole(transaction.getUser().getRole().name());
+            response.setUser(userResponse);
+
+            ProductResponse productResponse = new ProductResponse();
+            productResponse.setProductId(transaction.getProduct().getProductId());
+            productResponse.setProductName(transaction.getProduct().getProductName());
+            productResponse.setProductBrand(transaction.getProduct().getProductBrand());
+            productResponse.setProductPrice(transaction.getProduct().getProductPrice());
+            productResponse.setProductStock(transaction.getProduct().getProductStock());
+            productResponse.setProductDiscount(transaction.getProduct().getProductDiscount());
+            productResponse.setProductFinalPrice(transaction.getProduct().getProductFinalPrice());
+            response.setProduct(productResponse);
+
+            response.setQuantity(transaction.getQuantity());
+            response.setSubtotal(transaction.getSubtotal());
+            response.setTotal(transaction.getTotal());
+            response.setTransactionDate(transaction.getTransactionDate().toString());
+
+            return response;
+        }).collect(Collectors.toList());
     }
 }
