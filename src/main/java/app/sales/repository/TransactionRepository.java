@@ -11,4 +11,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByUserUserId(Integer userId);
 
     List<Transaction> findByProductProductId(Integer productId);
+
+    List<Transaction> findAll();
 }

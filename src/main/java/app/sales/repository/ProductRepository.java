@@ -6,4 +6,7 @@ import app.sales.entity.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     boolean existsByProductName(String productName);
+
+    boolean existsByProductNameAndProductIdNot(String productName, Integer productId);
+
 }
