@@ -2,7 +2,7 @@
 
 ## 📝 Deskripsi  
 API ini dibangun menggunakan **Java Spring Boot** dan **PostgreSQL**.
-Terdapat 5 API yang tersedia, yaitu API Login, Register, Master Data Produk, Transaksi Penjualan, dan Laporan.
+API yang tersedia, yaitu API Login, Register, Master Data Produk, Transaksi Penjualan, dan Laporan.
 
 Skema komponen database tersedia pada link berikut: https://docs.google.com/spreadsheets/d/1C1Q3wVCYLbC10dwd2WXVQNn_w2vs1tqBMRQ7hpfpUFg/edit?usp=sharing
 
