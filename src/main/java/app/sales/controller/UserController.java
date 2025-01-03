@@ -18,7 +18,6 @@ import app.sales.dto.login.LoginRequest;
 import app.sales.dto.login.LoginResponse;
 import app.sales.dto.register.RegisterRequest;
 import app.sales.entity.User;
-import app.sales.repository.UserRepository;
 import app.sales.service.JwtService;
 import app.sales.service.UserService;
 import app.sales.service.impl.UserServiceImpl.AccountNotActivatedException;
@@ -30,8 +29,6 @@ public class UserController {
     private final UserService userService;
 
     @Autowired
-    private UserRepository userRepository;
-
     public UserController(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
@@ -39,6 +36,8 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
+        ApiResponse<LoginResponse> response = new ApiResponse<>();
+
         try {
             User authenticatedUser = userService.login(loginRequest);
 
@@ -51,29 +50,33 @@ public class UserController {
             loginResponse.setToken(jwtToken);
             loginResponse.setType("Bearer");
 
-            ApiResponse<LoginResponse> apiResponse = new ApiResponse<>();
-            apiResponse.setData(loginResponse);
-            apiResponse.setMessage("Login Berhasil!");
-            apiResponse.setStatusCode(HttpStatus.OK.value());
-            apiResponse.setStatus("Sukses");
+            response.setData(loginResponse);
+            response.setMessage("Login Berhasil!");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setStatus("Sukses");
 
-            return ResponseEntity.ok(apiResponse);
+            return ResponseEntity.ok(response);
+
         } catch (AccountNotActivatedException e) {
-            ApiResponse<LoginResponse> errorResponse = new ApiResponse<>();
-            errorResponse.setData(null);
-            errorResponse.setMessage("Login gagal: " + "Akun belum diaktivasi.");
-            errorResponse.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-            errorResponse.setStatus("Gagal");
+            response.setData(null);
+            response.setMessage(e.getMessage());
+            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+            response.setStatus("Gagal");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        } catch (IllegalArgumentException e) {
+            response.setData(null);
+            response.setMessage(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setStatus("Gagal");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+
         } catch (Exception e) {
-            ApiResponse<LoginResponse> errorResponse = new ApiResponse<>();
-            errorResponse.setData(null);
-            errorResponse.setMessage("Login gagal: " + "Username atau Password tidak sesuai.");
-            errorResponse.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-            errorResponse.setStatus("Gagal");
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            response.setData(null);
+            response.setMessage("Terjadi kesalahan pada sistem.");
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setStatus("Gagal");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -94,10 +97,10 @@ public class UserController {
 
             return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             ApiResponse<Object> errorResponse = new ApiResponse<>();
             errorResponse.setData(null);
-            errorResponse.setMessage("Pendaftaran akun gagal: " + e.getMessage());
+            errorResponse.setMessage(e.getMessage());
             errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
             errorResponse.setStatus("Gagal");
 
@@ -110,29 +113,17 @@ public class UserController {
         String result = userService.activateAccount(username);
 
         ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage(result);
 
-        if (result.equals("Pengguna tidak ditemukan")) {
-            apiResponse.setMessage(result);
+        if (result.equals("Pengguna tidak ditemukan") || result.equals("Akun sudah diaktivasi.")) {
             apiResponse.setStatusCode(400);
             apiResponse.setStatus("Gagal");
-            apiResponse.setData(null);
-            return ResponseEntity.status(400).body(apiResponse);
+        } else {
+            apiResponse.setStatusCode(200);
+            apiResponse.setStatus("Sukses");
         }
 
-        if (result.equals("Akun sudah aktif atau pengguna bukan KASIR")) {
-            apiResponse.setMessage(result);
-            apiResponse.setStatusCode(400);
-            apiResponse.setStatus("Gagal");
-            apiResponse.setData(null);
-            return ResponseEntity.status(400).body(apiResponse);
-        }
-
-        apiResponse.setMessage("Akun berhasil diaktivasi");
-        apiResponse.setStatusCode(200);
-        apiResponse.setStatus("Sukses");
-        apiResponse.setData(username);
-
-        return ResponseEntity.ok(apiResponse);
+        apiResponse.setData(result.equals("Akun berhasil diaktivasi!") ? username : null);
+        return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse);
     }
-
 }
